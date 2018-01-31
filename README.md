@@ -3,6 +3,9 @@
 fasttext is a Python interface for
 [Facebook fastText](https://github.com/facebookresearch/fastText).
 
+## Update
+The [fasttext pypi](https://pypi.python.org/pypi/fasttext) is now maintained by Facebook AI Research team. Read the documentation here: [fastText python binding](https://github.com/facebookresearch/fastText/tree/master/python).
+
 ## Requirements
 
 fasttext support Python 2.6 or newer. It requires
