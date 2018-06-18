@@ -28,7 +28,7 @@ Dictionary::Dictionary(std::shared_ptr<Args> args) {
   nwords_ = 0;
   nlabels_ = 0;
   ntokens_ = 0;
-  word2int_.resize(MAX_VOCAB_SIZE);
+  word2int_.resize(MAX_VOCAB_SIZE); // 最大词个数
   for (int32_t i = 0; i < MAX_VOCAB_SIZE; i++) {
     word2int_[i] = -1;
   }
@@ -53,7 +53,7 @@ void Dictionary::add(const std::string& w) {
     entry e;
     e.word = w;
     e.count = 1;
-    e.type = (w.find(args_->label) == 0) ? entry_type::label : entry_type::word;
+    e.type = (w.find(args_->label) == 0) ? entry_type::label : entry_type::word; // 类别，这里就是word自己是类别标签
     words_.push_back(e);
     word2int_[h] = size_++;
   } else {
@@ -197,12 +197,12 @@ bool Dictionary::readWord(std::istream& in, std::string& word) const
 void Dictionary::readFromFile(std::istream& in) {
   std::string word;
   int64_t minThreshold = 1;
-  while (readWord(in, word)) {
-    add(word);
+  while (readWord(in, word)) { // 输入流中数据到 word
+    add(word);                 // 添加 w ，已经存在 count + 1 ，否则words_ 中添加一个元素
     if (ntokens_ % 1000000 == 0 && args_->verbose > 1) {
       std::cout << "\rRead " << ntokens_  / 1000000 << "M words" << std::flush;
     }
-    if (size_ > 0.75 * MAX_VOCAB_SIZE) {
+    if (size_ > 0.75 * MAX_VOCAB_SIZE) { // 0.75 空间时候扩容
       minThreshold++;
       threshold(minThreshold, minThreshold);
     }
@@ -256,7 +256,9 @@ void Dictionary::initTableDiscard() {
     pdiscard_[i] = sqrt(args_->t / f) + args_->t / f;
   }
 }
-
+/*
+* 获取 type类型的个数
+*/
 std::vector<int64_t> Dictionary::getCounts(entry_type type) const {
   std::vector<int64_t> counts;
   for (auto& w : words_) {
@@ -264,7 +266,9 @@ std::vector<int64_t> Dictionary::getCounts(entry_type type) const {
   }
   return counts;
 }
-
+/*
+* 添加 ngrams
+*/
 void Dictionary::addNgrams(std::vector<int32_t>& line, int32_t n) const {
   int32_t line_size = line.size();
   for (int32_t i = 0; i < line_size; i++) {

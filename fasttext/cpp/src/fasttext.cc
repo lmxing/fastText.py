@@ -111,7 +111,9 @@ void FastText::supervised(Model& model, real lr,
   int32_t i = uniform(model.rng);
   model.update(line, labels[i], lr);
 }
-
+/*
+* cbow 模型
+*/
 void FastText::cbow(Model& model, real lr,
                     const std::vector<int32_t>& line) {
   std::vector<int32_t> bow;
@@ -128,7 +130,9 @@ void FastText::cbow(Model& model, real lr,
     model.update(bow, line[w], lr);
   }
 }
-
+/*
+* skipgram 模型
+*/
 void FastText::skipgram(Model& model, real lr,
                         const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
@@ -142,7 +146,9 @@ void FastText::skipgram(Model& model, real lr,
     }
   }
 }
-
+/*
+* 测试
+*/
 void FastText::test(std::istream& in, int32_t k) {
   int32_t nexamples = 0, nlabels = 0;
   double precision = 0.0;
@@ -168,7 +174,9 @@ void FastText::test(std::istream& in, int32_t k) {
   std::cout << "R@" << k << ": " << precision / nlabels << std::endl;
   std::cout << "Number of examples: " << nexamples << std::endl;
 }
-
+/*
+* 预测
+*/
 void FastText::predict(std::istream& in, int32_t k,
                        std::vector<std::pair<real,std::string>>& predictions) const {
   std::vector<int32_t> words, labels;
@@ -205,7 +213,9 @@ void FastText::predict(std::istream& in, int32_t k, bool print_prob) {
     std::cout << std::endl;
   }
 }
-
+/*
+* 词向量
+*/
 void FastText::wordVectors() {
   std::string word;
   Vector vec(args_->dim);
@@ -214,7 +224,9 @@ void FastText::wordVectors() {
     std::cout << word << " " << vec << std::endl;
   }
 }
-
+/*
+* 文本向量化
+*/
 void FastText::textVectors() {
   std::vector<int32_t> line, labels;
   Vector vec(args_->dim);
@@ -239,7 +251,9 @@ void FastText::printVectors() {
     wordVectors();
   }
 }
-
+/*
+* 训练线程
+*/
 void FastText::trainThread(int32_t threadId) {
   std::ifstream ifs(args_->input);
   utils::seek(ifs, threadId * utils::size(ifs) / args_->thread);
@@ -280,7 +294,9 @@ void FastText::trainThread(int32_t threadId) {
   }
   ifs.close();
 }
-
+/*
+* 载入vector
+*/
 void FastText::loadVectors(std::string filename) {
   std::ifstream in(filename);
   std::vector<std::string> words;
@@ -320,7 +336,9 @@ void FastText::loadVectors(std::string filename) {
     }
   }
 }
-
+/*
+* 训练模型
+*/
 void FastText::train(std::shared_ptr<Args> args) {
   args_ = args;
   dict_ = std::make_shared<Dictionary>(args_);
@@ -334,7 +352,7 @@ void FastText::train(std::shared_ptr<Args> args) {
     std::cerr << "Input file cannot be opened!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  dict_->readFromFile(ifs);
+  dict_->readFromFile(ifs);// 读取数据 
   ifs.close();
 
   if (args_->pretrainedVectors.size() != 0) {
