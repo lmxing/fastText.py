@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*
 import fasttext as ft
 
 # First download the dbpedia.train using https://github.com/facebookresearch/fastText/blob/master/classification-example.sh

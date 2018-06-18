@@ -23,16 +23,16 @@ Model::Model(std::shared_ptr<Matrix> wi,
              int32_t seed)
   : hidden_(args->dim), output_(wo->m_), grad_(args->dim), rng(seed)
 {
-  wi_ = wi;
-  wo_ = wo;
+  wi_ = wi; // n 行 m列矩阵
+  wo_ = wo; // n 行 m列矩阵
   args_ = args;
-  isz_ = wi->m_;
-  osz_ = wo->m_;
-  hsz_ = args->dim;
+  isz_ = wi->m_; // m 列的 一维向量
+  osz_ = wo->m_; // m 列的 一维向量
+  hsz_ = args->dim; // 词向量的维度
   negpos = 0;
   loss_ = 0.0;
   nexamples_ = 1;
-  initSigmoid();
+  initSigmoid(); // sigmoid 函数初始化
   initLog();
 }
 
@@ -40,19 +40,23 @@ Model::~Model() {
   delete[] t_sigmoid;
   delete[] t_log;
 }
-
+/*
+* 二元逻辑回归
+*/
 real Model::binaryLogistic(int32_t target, bool label, real lr) {
-  real score = sigmoid(wo_->dotRow(hidden_, target));
-  real alpha = lr * (real(label) - score);
-  grad_.addRow(*wo_, target, alpha);
-  wo_->addRow(hidden_, target, alpha);
-  if (label) {
+  real score = sigmoid(wo_->dotRow(hidden_, target)); //hidden_ 乘以 target 就是目标值的分数
+  real alpha = lr * (real(label) - score);            // lr 是学习率，真实值 - 预测值， 这里是 计算梯度
+  grad_.addRow(*wo_, target, alpha);                  //  更新梯度
+  wo_->addRow(hidden_, target, alpha);                // 更新 参数
+  if (label) {                                        // 获取 sigmoid 分数
     return -log(score);
   } else {
     return -log(1.0 - score);
   }
 }
-
+/*
+* 根据正负样本，训练时候参数不一样
+*/
 real Model::negativeSampling(int32_t target, real lr) {
   real loss = 0.0;
   grad_.zero();
@@ -65,7 +69,10 @@ real Model::negativeSampling(int32_t target, real lr) {
   }
   return loss;
 }
-
+/*
+* 。在霍夫曼树中，隐藏层到输出层的softmax映射不是一下子完成的，而是沿着霍夫曼树一步步完成的，因此这种softmax取名为"Hierarchical Softmax"。
+* 返回损失值
+*/
 real Model::hierarchicalSoftmax(int32_t target, real lr) {
   real loss = 0.0;
   grad_.zero();
@@ -76,7 +83,9 @@ real Model::hierarchicalSoftmax(int32_t target, real lr) {
   }
   return loss;
 }
-
+/*
+* 计算输出 softmax
+*/
 void Model::computeOutputSoftmax(Vector& hidden, Vector& output) const {
   output.mul(*wo_, hidden);
   real max = output[0], z = 0.0;
@@ -95,7 +104,9 @@ void Model::computeOutputSoftmax(Vector& hidden, Vector& output) const {
 void Model::computeOutputSoftmax() {
   computeOutputSoftmax(hidden_, output_);
 }
-
+/*
+* softmax 
+*/
 real Model::softmax(int32_t target, real lr) {
   grad_.zero();
   computeOutputSoftmax();
@@ -107,7 +118,9 @@ real Model::softmax(int32_t target, real lr) {
   }
   return -log(output_[target]);
 }
-
+/*
+*  input - hidden 计算
+*/
 void Model::computeHidden(const std::vector<int32_t>& input, Vector& hidden) const {
   assert(hidden.size() == hsz_);
   hidden.zero();
@@ -121,7 +134,9 @@ bool Model::comparePairs(const std::pair<real, int32_t> &l,
                          const std::pair<real, int32_t> &r) {
   return l.first > r.first;
 }
-
+/*
+* 预测模型
+*/
 void Model::predict(const std::vector<int32_t>& input, int32_t k,
                     std::vector<std::pair<real, int32_t>>& heap,
                     Vector& hidden, Vector& output) const {
@@ -156,14 +171,16 @@ void Model::findKBest(int32_t k, std::vector<std::pair<real, int32_t>>& heap,
     }
   }
 }
-
+/*
+* 深度优先--树的先序遍历
+*/
 void Model::dfs(int32_t k, int32_t node, real score,
                 std::vector<std::pair<real, int32_t>>& heap,
                 Vector& hidden) const {
   if (heap.size() == k && score < heap.front().first) {
     return;
   }
-
+  // 叶子节点
   if (tree[node].left == -1 && tree[node].right == -1) {
     heap.push_back(std::make_pair(score, node));
     std::push_heap(heap.begin(), heap.end(), comparePairs);
@@ -173,12 +190,14 @@ void Model::dfs(int32_t k, int32_t node, real score,
     }
     return;
   }
-
+  // 计算当前哈夫曼树的 real
   real f = sigmoid(wo_->dotRow(hidden, node - osz_));
   dfs(k, tree[node].left, score + log(1.0 - f), heap, hidden);
   dfs(k, tree[node].right, score + log(f), heap, hidden);
 }
-
+/*
+* 更新梯度
+*/
 void Model::update(const std::vector<int32_t>& input, int32_t target, real lr) {
   assert(target >= 0);
   assert(target < osz_);
@@ -233,7 +252,9 @@ int32_t Model::getNegative(int32_t target) {
   } while (target == negative);
   return negative;
 }
-
+/*
+* 构建哈夫曼树
+*/
 void Model::buildTree(const std::vector<int64_t>& counts) {
   tree.resize(2 * osz_ - 1);
   for (int32_t i = 0; i < 2 * osz_ - 1; i++) {
@@ -264,6 +285,7 @@ void Model::buildTree(const std::vector<int64_t>& counts) {
     tree[mini[1]].parent = i;
     tree[mini[1]].binary = true;
   }
+  // 输出根节点到叶子节点的路径
   for (int32_t i = 0; i < osz_; i++) {
     std::vector<int32_t> path;
     std::vector<bool> code;
@@ -277,11 +299,16 @@ void Model::buildTree(const std::vector<int64_t>& counts) {
     codes.push_back(code);
   }
 }
-
+/*
+* 损失函数
+*/ 
 real Model::getLoss() const {
   return loss_ / nexamples_;
 }
-
+/*
+* 初始化 sigmoid
+* 为什么 x 值进行了变化 不明白？
+*/
 void Model::initSigmoid() {
   t_sigmoid = new real[SIGMOID_TABLE_SIZE + 1];
   for (int i = 0; i < SIGMOID_TABLE_SIZE + 1; i++) {
@@ -289,7 +316,9 @@ void Model::initSigmoid() {
     t_sigmoid[i] = 1.0 / (1.0 + std::exp(-x));
   }
 }
-
+/*
+* 初始化 log
+*/
 void Model::initLog() {
   t_log = new real[LOG_TABLE_SIZE + 1];
   for (int i = 0; i < LOG_TABLE_SIZE + 1; i++) {
@@ -297,7 +326,9 @@ void Model::initLog() {
     t_log[i] = std::log(x);
   }
 }
-
+/*
+* 获取log（x） ，初始化之后，后面使用直接获取
+*/
 real Model::log(real x) const {
   if (x > 1.0) {
     return 0.0;
@@ -305,7 +336,11 @@ real Model::log(real x) const {
   int i = int(x * LOG_TABLE_SIZE);
   return t_log[i];
 }
-
+/*
+* sigmoid 计算， 为了提高计算效率，过大直接返回1.0 过小直接返回 0.0
+* t_sigmoid 在 initSigmoid 中初始化之后，后续使用直接取，更加提高了计算效率
+* x 转化为 i，直接取，为什么？ 不是明白 
+*/
 real Model::sigmoid(real x) const {
   if (x < -MAX_SIGMOID) {
     return 0.0;

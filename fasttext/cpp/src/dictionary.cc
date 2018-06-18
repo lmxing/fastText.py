@@ -18,9 +18,9 @@
 
 namespace fasttext {
 
-const std::string Dictionary::EOS = "</s>";
-const std::string Dictionary::BOW = "<";
-const std::string Dictionary::EOW = ">";
+const std::string Dictionary::EOS = "</s>"; // 结束标记
+const std::string Dictionary::BOW = "<"; // word 开始标记
+const std::string Dictionary::EOW = ">"; // word 结束标记
 
 Dictionary::Dictionary(std::shared_ptr<Args> args) {
   args_ = args;
@@ -33,7 +33,9 @@ Dictionary::Dictionary(std::shared_ptr<Args> args) {
     word2int_[i] = -1;
   }
 }
-
+/*
+* 返回 w 所在的位置
+*/
 int32_t Dictionary::find(const std::string& w) const {
   int32_t h = hash(w) % MAX_VOCAB_SIZE;
   while (word2int_[h] != -1 && words_[word2int_[h]].word != w) {
@@ -41,7 +43,9 @@ int32_t Dictionary::find(const std::string& w) const {
   }
   return h;
 }
-
+/*
+* 添加 w ，已经存在 count + 1 ，否则words_ 中添加一个元素 
+*/
 void Dictionary::add(const std::string& w) {
   int32_t h = find(w);
   ntokens_++;
@@ -68,13 +72,17 @@ int32_t Dictionary::nlabels() const {
 int64_t Dictionary::ntokens() const {
   return ntokens_;
 }
-
+/*
+* 获取 i 位置的 ngram
+*/
 const std::vector<int32_t>& Dictionary::getNgrams(int32_t i) const {
   assert(i >= 0);
   assert(i < nwords_);
   return words_[i].subwords;
 }
-
+/*
+* 获取 word 的 ngram
+*/
 const std::vector<int32_t> Dictionary::getNgrams(const std::string& word) const {
   int32_t i = getId(word);
   if (i >= 0) {
@@ -91,24 +99,32 @@ bool Dictionary::discard(int32_t id, real rand) const {
   if (args_->model == model_name::sup) return false;
   return rand > pdiscard_[id];
 }
-
+/*
+* 获取 w 的id
+*/
 int32_t Dictionary::getId(const std::string& w) const {
   int32_t h = find(w);
   return word2int_[h];
 }
-
+/*
+* 获取 id 对应word 的类型
+*/
 entry_type Dictionary::getType(int32_t id) const {
   assert(id >= 0);
   assert(id < size_);
   return words_[id].type;
 }
-
+/*
+* 获取 id 位置的 word
+*/
 std::string Dictionary::getWord(int32_t id) const {
   assert(id >= 0);
   assert(id < size_);
   return words_[id].word;
 }
-
+/*
+* 获取 str 的hash
+*/
 uint32_t Dictionary::hash(const std::string& str) const {
   uint32_t h = 2166136261;
   for (size_t i = 0; i < str.size(); i++) {
@@ -117,11 +133,13 @@ uint32_t Dictionary::hash(const std::string& str) const {
   }
   return h;
 }
-
+/*
+* 计算 N gram 
+*/
 void Dictionary::computeNgrams(const std::string& word,
                                std::vector<int32_t>& ngrams) const {
   for (size_t i = 0; i < word.size(); i++) {
-    std::string ngram;
+    std::string ngram; // 一个ngram
     if ((word[i] & 0xC0) == 0x80) continue;
     for (size_t j = i, n = 1; j < word.size() && n <= args_->maxn; n++) {
       ngram.push_back(word[j++]);
@@ -130,12 +148,14 @@ void Dictionary::computeNgrams(const std::string& word,
       }
       if (n >= args_->minn && !(n == 1 && (i == 0 || j == word.size()))) {
         int32_t h = hash(ngram) % args_->bucket;
-        ngrams.push_back(nwords_ + h);
+        ngrams.push_back(nwords_ + h); // 存储所有的ngram
       }
     }
   }
 }
-
+/*
+* 初始化ngram，ngram 存储在 subwords 中
+*/
 void Dictionary::initNgrams() {
   for (size_t i = 0; i < size_; i++) {
     std::string word = BOW + words_[i].word + EOW;
@@ -143,7 +163,9 @@ void Dictionary::initNgrams() {
     computeNgrams(word, words_[i].subwords);
   }
 }
-
+/*
+* 输入流中读取 word
+*/
 bool Dictionary::readWord(std::istream& in, std::string& word) const
 {
   char c;
@@ -169,7 +191,9 @@ bool Dictionary::readWord(std::istream& in, std::string& word) const
   in.get();
   return !word.empty();
 }
-
+/*
+* 读入流
+*/
 void Dictionary::readFromFile(std::istream& in) {
   std::string word;
   int64_t minThreshold = 1;
@@ -196,7 +220,9 @@ void Dictionary::readFromFile(std::istream& in) {
     exit(EXIT_FAILURE);
   }
 }
-
+/*
+* 
+*/
 void Dictionary::threshold(int64_t t, int64_t tl) {
   sort(words_.begin(), words_.end(), [](const entry& e1, const entry& e2) {
       if (e1.type != e2.type) return e1.type < e2.type;
@@ -220,7 +246,9 @@ void Dictionary::threshold(int64_t t, int64_t tl) {
     if (it->type == entry_type::label) nlabels_++;
   }
 }
-
+/*
+*
+*/
 void Dictionary::initTableDiscard() {
   pdiscard_.resize(size_);
   for (size_t i = 0; i < size_; i++) {

@@ -26,10 +26,10 @@ typedef int32_t id_type;
 enum class entry_type : int8_t {word=0, label=1};
 
 struct entry {
-  std::string word;
-  int64_t count;
-  entry_type type;
-  std::vector<int32_t> subwords;
+  std::string word; //word
+  int64_t count; //word 出现次数
+  entry_type type; //type
+  std::vector<int32_t> subwords; // subwords
 };
 
 class Dictionary {
@@ -42,8 +42,8 @@ class Dictionary {
     void initNgrams();
 
     std::shared_ptr<Args> args_;
-    std::vector<int32_t> word2int_;
-    std::vector<entry> words_;
+    std::vector<int32_t> word2int_; // 转化为int 数组
+    std::vector<entry> words_; // 句子 分词后的向量
     std::vector<real> pdiscard_;
     int32_t size_;
     int32_t nwords_;

@@ -22,8 +22,8 @@ class Matrix;
 class Vector {
 
   public:
-    int64_t m_;
-    real* data_;
+    int64_t m_; // 元素个数
+    real* data_; // float 指针
 
     explicit Vector(int64_t);
     ~Vector();
@@ -34,10 +34,10 @@ class Vector {
     int64_t size() const;
     void zero();
     void mul(real);
-    void addRow(const Matrix&, int64_t);
+    void addRow(const Matrix&, int64_t); // 加法
     void addRow(const Matrix&, int64_t, real);
-    void mul(const Matrix&, const Vector&);
-    int64_t argmax();
+    void mul(const Matrix&, const Vector&); // 乘法
+    int64_t argmax(); // 最大值下标
 };
 
 std::ostream& operator<<(std::ostream&, const Vector&);

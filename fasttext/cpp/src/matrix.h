@@ -23,9 +23,9 @@ class Vector;
 class Matrix {
 
   public:
-    real* data_;
-    int64_t m_;
-    int64_t n_;
+    real* data_; // float类型指针
+    int64_t m_; // 列数
+    int64_t n_; // 行数
 
     Matrix();
     Matrix(int64_t, int64_t);
@@ -35,7 +35,7 @@ class Matrix {
 
     void zero();
     void uniform(real);
-    real dotRow(const Vector&, int64_t);
+    real dotRow(const Vector&, int64_t); // 点乘
     void addRow(const Vector&, int64_t, real);
 
     void save(std::ostream&);
