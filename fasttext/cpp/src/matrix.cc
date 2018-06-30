@@ -19,6 +19,7 @@
 namespace fasttext {
 /*
 * Matrix
+* 由于 Matrix 是一维数组表示二维数组，data_[i * n_ + j] 表示 对应二维数组[i][j] 位置的元素
 */
 Matrix::Matrix() {
   m_ = 0; // 列数
@@ -77,7 +78,7 @@ void Matrix::uniform(real a) {
   }
 }
 /*
-* Matrix 增加一行，由于 Matrix 是一维数组表示二维数组，data_[i * n_ + j] 表示 对应二维数字[i][j] 位置的元素
+* Matrix i 行的值 加上 vec 对应位置的值
 */
 void Matrix::addRow(const Vector& vec, int64_t i, real a) {
   assert(i >= 0);

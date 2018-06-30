@@ -33,8 +33,8 @@ struct entry {
 };
 
 class Dictionary {
-  private:
-    static const int32_t MAX_VOCAB_SIZE = 30000000;
+private:
+    static const int32_t MAX_VOCAB_SIZE = 30000000; // 最大词的个数
     static const int32_t MAX_LINE_SIZE = 1024;
 
     int32_t find(const std::string&) const;
