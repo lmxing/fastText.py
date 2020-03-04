@@ -28,10 +28,10 @@ namespace fasttext {
 class FastText {
   private:
     std::shared_ptr<Args> args_;
-    std::shared_ptr<Dictionary> dict_;
-    std::shared_ptr<Matrix> input_;
-    std::shared_ptr<Matrix> output_;
-    std::shared_ptr<Model> model_;
+    std::shared_ptr<Dictionary> dict_; // 输入数据字典
+    std::shared_ptr<Matrix> input_; // 输入向量
+    std::shared_ptr<Matrix> output_; // 输出向量
+    std::shared_ptr<Model> model_; // 模型
     std::atomic<int64_t> tokenCount;
     clock_t start;
 
